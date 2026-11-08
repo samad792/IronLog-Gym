@@ -109,7 +109,7 @@ function initializeDocument(kind, snapshot) {
     if (keepLocal) { state.pending[kind] = true; send(kind); }
   } else {
     state.initial[kind] = true;
-    // Seed an empty Firebase account with existing local history.
+    // Seed only this exact UID's own scoped local cache (never another identity's data).
     state.pending[kind] = true;
     send(kind);
   }
@@ -141,6 +141,8 @@ function watch(kind) {
 }
 function startSync(user) {
   stopListeners();
+  // Switch the app's local data BEFORE binding Firestore or enabling writes.
+  bridge.switchAccount(user.uid);
   state.user = user;
   state.refs.data = state.firestore.doc(state.db, 'users', user.uid, 'state', 'main');
   state.refs.draft = state.firestore.doc(state.db, 'users', user.uid, 'state', 'draft');
@@ -173,7 +175,12 @@ async function configure(config) {
     });
     authLib.onAuthStateChanged(state.auth, user => {
       if (user) startSync(user);
-      else { stopListeners(); state.user = null; updateStatus(); }
+      else {
+        stopListeners(); state.user = null;
+        // Signed-out browsing has a separate guest cache, never the previous UID.
+        bridge.switchAccount(null);
+        updateStatus();
+      }
       if (document.getElementById('firebase-account')) bridge.setStatus(state.status, state.detail);
     }, err => { state.error = err.message; show('Auth error', err.message); });
     show('Sign in required', 'Use the Google button in Settings');
