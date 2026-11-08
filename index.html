@@ -16,19 +16,20 @@
  h1{font-size:clamp(27px,7vw,36px);line-height:1.13;letter-spacing:-1.1px}
  h2{font-size:21px}
  p{line-height:1.55}
- .top{align-items:flex-start;gap:10px;margin-bottom:23px}
+ .top{display:grid;grid-template-columns:minmax(0,1fr);align-items:flex-start;gap:12px;margin-bottom:23px}
  .top .eyebrow{font-size:10px;letter-spacing:1.3px}
- .topright{max-width:75%;flex-wrap:wrap;justify-content:flex-end;gap:7px}
- .topright .btn{min-height:38px;padding:9px 11px;font-size:11px}
+ .topright{width:100%;max-width:100%;flex-wrap:wrap;justify-content:flex-start;gap:8px}
+ .topright>*{flex:0 0 auto}
+ .topright .btn{min-height:40px;padding:10px 13px;font-size:12px}
  .topright .btn:last-child{display:none}
- .topright .tag{max-width:155px;text-align:center;font-size:10px;padding:8px 9px}
+ .topright .tag{max-width:none;text-align:center;font-size:11px;padding:9px 12px}
  .panel{padding:18px;border-radius:18px}
  .grid{gap:12px}
  .cols4{grid-template-columns:repeat(2,minmax(0,1fr))}
  .cols4 .stat{padding:16px 13px}
  .stat strong{font-size:24px;letter-spacing:-.7px}
  .stat label{font-size:11px;min-height:28px;margin-bottom:6px}
- .sectionhead{gap:10px;margin:24px 0 14px}
+ .sectionhead{gap:10px;margin:24px 0 14px;align-items:center}
  .sectionhead h2{font-size:20px}
  .sectionhead .btn{min-height:43px}
  .subline{margin:9px 0 20px}
@@ -39,22 +40,25 @@
  .input,select,textarea{min-height:46px;font-size:16px;padding:12px}
  .dropdownrow select{width:100%;min-width:0}
  .workout-ex{padding:17px 14px;border-radius:19px;background:#111b24;margin-bottom:4px}
- .workout-ex>.row:first-child{align-items:flex-start;gap:10px}
- .workout-ex h3{font-size:18px;line-height:1.25}
- .workout-ex>.row:first-child .btn{min-height:35px;padding:8px 10px;flex:0 0 auto}
+ .workout-ex>.row:first-child{align-items:flex-start;gap:10px;flex-wrap:wrap}
+ .workout-ex>.row:first-child>div:first-child{min-width:0;flex:1 1 170px}
+ .workout-ex h3{font-size:18px;line-height:1.25;word-break:break-word}
+ .workout-ex>.row:first-child .btn{min-height:35px;padding:8px 10px;flex:0 0 auto;margin-left:auto}
  .set-head{display:none}
- .set-entry{display:grid;grid-template-columns:repeat(3,minmax(0,1fr)) 42px;gap:10px;align-items:end;padding:14px 0 15px;border-bottom:1px solid #293440;margin:0}
+ .set-entry{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;align-items:end;padding:14px 0 15px;border-bottom:1px solid #293440;margin:0}
  .set-entry:last-of-type{border-bottom:0}
- .set-number{grid-column:1/-1;justify-content:flex-start;gap:9px;font-size:14px;color:var(--green);padding:0 1px}
+ .set-number{grid-column:1/3;justify-content:flex-start;gap:9px;font-size:14px;color:var(--green);padding:0 1px;min-height:26px}
  .set-number::before{content:'SET';font-size:11px;letter-spacing:1px;color:var(--muted);font-weight:700}
+ .set-delete{grid-column:3/4;grid-row:1;min-height:0!important;height:30px;width:34px;justify-self:end;align-self:center;padding:0!important;border-color:transparent!important;font-size:22px!important;line-height:1}
  .set-field{display:grid;gap:7px;font-size:12px;color:#a8b8c5;text-align:left}
  .set-field>span{display:block}
  .set-field .input{height:52px;min-height:52px;text-align:center;padding:10px 3px;font-size:19px;font-weight:750;border-radius:12px}
- .set-warm{grid-column:4;grid-row:2;align-items:center;justify-content:center;align-self:end;height:52px;border:1px solid #34414c;border-radius:12px;background:#0c1218}
- .set-warm input{height:23px;width:23px}
- .set-delete{grid-column:4;grid-row:1;min-height:0!important;height:27px;width:34px;justify-self:end;padding:0!important;border-color:transparent!important;font-size:22px!important;line-height:1}
+ .set-warm{grid-column:1/-1;grid-row:3;display:flex;align-items:center;justify-content:flex-start;gap:10px;align-self:center;height:auto;border:0;border-radius:0;background:transparent;padding-top:6px}
+ .set-warm::before{content:'Warm-up';font-size:12px;color:var(--muted);font-weight:600}
+ .set-warm input{height:22px;width:22px;margin:0}
  .set-entry+.set-entry{margin-top:4px}
- .workout-ex>.row:last-child .btn{flex:1}
+ .workout-ex>.row:last-child{flex-wrap:wrap}
+ .workout-ex>.row:last-child .btn{flex:1 1 160px}
  .metricsbar{padding:15px}
  .mobile-nav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;padding:9px 5px calc(10px + env(safe-area-inset-bottom));min-height:69px;background:#101821f7;backdrop-filter:blur(20px);box-shadow:0 -12px 35px #0006}
  .mobile-nav button{min-width:0;border-radius:12px;min-height:52px;font-size:10px;gap:3px;padding:6px 2px;color:#a8b5c4}
@@ -67,18 +71,19 @@
 @media(max-width:370px){
  main{padding-left:11px;padding-right:11px}
  .workout-ex{padding:14px 11px}
- .set-entry{gap:6px;grid-template-columns:repeat(3,minmax(0,1fr)) 36px}
+ .set-entry{gap:8px}
  .set-field .input{font-size:17px}
  .mobile-nav button{font-size:9px}
  .cols4 .stat{padding:13px 10px}
- .topright .tag{max-width:120px}
+ .topright .tag{max-width:none;font-size:10px}
+ .topright .btn{padding:9px 11px;font-size:11px}
 }
 
 .auth-shield{position:fixed;inset:0;z-index:9999;background:#080d14;display:flex;align-items:center;justify-content:center;padding:24px}
 .auth-shield-card{font-size:24px;text-align:center;color:#f4f8ff}.auth-shield-card span{color:#a1f340}.auth-shield-card p{font-size:15px;color:#9dafc0;margin-top:12px}
 </style></head><body>
 <div class="shell"><aside class="sidebar"><div class="brand">IRON<b>LOG</b><div class="eyebrow" style="margin-top:6px;letter-spacing:1px">TRAIN. TRACK. PROGRESS.</div></div><nav class="nav" id="nav"></nav><div class="sidebottom"><b>● <span id="side-sync-label">LOCAL ONLY</span></b><span id="side-sync-detail">Saved instantly on this device. Google sign-in enables cloud sync.</span></div></aside><main><header class="top"><div><div class="eyebrow">IRONLOG / <span id="page-label">OVERVIEW</span></div></div><div class="topright"><span class="tag" id="sync-status" aria-live="polite">● Local only</span><button class="btn small" onclick="navigate('settings')" aria-label="Cloud account and settings">⚙ Settings</button><button class="btn small" onclick="exportAll()">Export backup ↗</button></div></header>
-<section class="view active" id="dashboard"></section><section class="view" id="workout"></section><section class="view" id="exercises"></section><section class="view" id="analytics"></section><section class="view" id="history"></section><section class="view" id="body"></section><section class="view" id="settings"></section></main></div><nav class="mobile-nav" id="mobile-nav"></nav><div id="modalroot"></div><div id="toastroot"></div><div class="auth-shield" id="auth-shield" role="status" aria-live="polite"><div class="auth-shield-card"><b>IRON<span>LOG</span></b><p>Checking your account…</p></div></div>
+<section class="view active" id="dashboard"></section><section class="view" id="workout"></section><section class="view" id="exercises"></section><section class="view" id="analytics"></section><section class="view" id="history"></section><section class="view" id="body"></section><section class="view" id="settings"></section></main></div><nav class="mobile-nav" id="mobile-nav"></nav><div id="modalroot"></div><div id="toastroot"></div><div class="auth-shield" id="auth-shield" role="status" aria-live="polite"><div class="auth-shield-card"><b>IRON<span>LOG</span></b><p id="auth-shield-message">Checking your account…</p><div id="auth-shield-actions" style="display:none;margin-top:18px"><button class="btn primary" type="button" onclick="location.reload()">Retry connection</button><p style="font-size:12px;line-height:1.6;max-width:310px;margin:14px auto 0;color:#9dafc0">If this continues, check your internet connection and refresh the installed website. Your account data is kept separate.</p></div></div></div>
 <script>
 'use strict';
 const ACCOUNT_PREFIX='ironlog_uid_v3_';let KEY=ACCOUNT_PREFIX+'guest_data',DRAFT=ACCOUNT_PREFIX+'guest_draft';const TABS=[['dashboard','▦','Dashboard'],['workout','＋','Workout'],['exercises','▤','Exercises'],['analytics','⌁','Analytics'],['history','◷','History'],['body','⚖','Body'],['settings','⚙','Settings']];const starter=[['Bench Press','PUSH','Chest'],['Incline Dumbbell Press','PUSH','Chest'],['Overhead Press','PUSH','Shoulders'],['Lateral Raise','PUSH','Shoulders'],['Triceps Pushdown','PUSH','Triceps'],['Pull Up','PULL','Back'],['Lat Pulldown','PULL','Back'],['Barbell Row','PULL','Back'],['Seated Cable Row','PULL','Back'],['Biceps Curl','PULL','Biceps'],['Barbell Squat','LEGS','Quads'],['Leg Press','LEGS','Quads'],['Romanian Deadlift','LEGS','Hamstrings'],['Leg Curl','LEGS','Hamstrings'],['Leg Extension','LEGS','Quads'],['Calf Raise','LEGS','Calves']];
@@ -117,4 +122,18 @@ function resetAll(){if(prompt('Type DELETE to erase all gym data')!=='DELETE')re
 function exportText(filename,content,type){let blob=new Blob([content],{type}),u=URL.createObjectURL(blob),a=document.createElement('a');a.href=u;a.download=filename;a.click();setTimeout(()=>URL.revokeObjectURL(u),3000)}function exportAll(){exportText('ironlog-backup-'+date()+'.json',JSON.stringify({version:1,exportedAt:new Date().toISOString(),data,draft},null,2),'application/json')}function csv(rows){return rows.map(row=>row.map(v=>'"'+String(v??'').replace(/"/g,'""')+'"').join(',')).join('\r\n')}function exportCSV(){let rows=[['Workout ID','Date','Category','Exercise','Weight (kg)','Reps','RPE','Warmup','Notes']];for(let w of data.workouts)for(let ex of w.exercises)for(let s of ex.sets)rows.push([w.id,w.date,w.category,exById(ex.exerciseId)?.name||ex.exerciseId,s.weight,s.reps,s.rpe,s.warmup?'Yes':'No',w.notes]);exportText('ironlog-workouts-'+date()+'.csv',csv(rows),'text/csv')}function exportWeightCSV(){exportText('ironlog-bodyweight-'+date()+'.csv',csv([['Date','Weight (kg)','Height (cm)','BMI'],...data.weights.map(w=>[w.date,w.weight,data.height||'',data.height?fmt(n(w.weight)/((data.height/100)**2)):''])]),'text/csv')}function importAll(file){if(!file)return;let reader=new FileReader();reader.onload=()=>{try{let imported=JSON.parse(reader.result),v=imported.data||imported;if(!Array.isArray(v.workouts)||!Array.isArray(v.exercises)||!Array.isArray(v.weights)||!Array.isArray(v.categories)||!Array.isArray(v.templates))throw Error('Invalid backup');if(!confirm('Replace ALL current local data with this backup?'))return;data=v;persist();draft=imported.draft&&Array.isArray(imported.draft.exercises)?imported.draft:null;saveDraft();render();toast('Backup restored')}catch(e){alert('Could not import backup: '+e.message)}};reader.readAsText(file)}function prRecords(){return data.exercises.filter(e=>exSets(e.id).length).map(e=>({name:e.name,weight:Math.max(...exSets(e.id).map(s=>n(s.weight)))}))}
 function modal(html){document.getElementById('modalroot').innerHTML=`<div class="modalbg" onclick="if(event.target===this)closeModal()"><div class="modal">${html}</div></div>`}function closeModal(){document.getElementById('modalroot').innerHTML=''}function timerLabel(){if(!restEnd)return '00:00';let v=Math.max(0,Math.ceil((restEnd-Date.now())/1000));return String(Math.floor(v/60)).padStart(2,'0')+':'+String(v%60).padStart(2,'0')}function startRest(s){restEnd=Date.now()+s*1000;try{localStorage.setItem('ironlog_rest_end_v1',String(restEnd))}catch{};clearInterval(restTicker);restTicker=setInterval(()=>{let t=document.getElementById('timerText');if(t)t.textContent=timerLabel();if(Date.now()>=restEnd){clearInterval(restTicker);restEnd=0;try{localStorage.removeItem('ironlog_rest_end_v1')}catch{};toast('Rest over — next set!')}},500);toast('Rest timer started: '+s+' seconds')}function stopRest(){restEnd=0;clearInterval(restTicker);try{localStorage.removeItem('ironlog_rest_end_v1')}catch{};closeModal();toast('Timer stopped')}function showTimer(){modal(`<h2>Rest timer</h2><p style="margin-bottom:15px">Choose a rest interval between working sets.</p><div class="grid cols2">${[60,90,120,180].map(s=>button(s+' seconds',`startRest(${s});closeModal()`,'primary')).join('')}</div><div style="margin-top:15px">${button('Stop timer','stopRest()','wide')}</div>`)}
 if(restEnd){restTicker=setInterval(()=>{if(restEnd&&Date.now()>=restEnd){restEnd=0;clearInterval(restTicker);try{localStorage.removeItem('ironlog_rest_end_v1')}catch{};toast('Rest over — next set!')}let t=document.getElementById('timerText');if(t)t.textContent=timerLabel()},1000)}render();
-</script><script src="./firebase-config.js"></script><script type="module" src="./firebase-sync.js"></script></body></html>
+</script><script>
+// Recovery UI only; never unlocks or exposes an earlier user's private records.
+window.IronlogStartup = {
+  fail(message) {
+    const shield = document.getElementById('auth-shield');
+    if (!shield) return;
+    const label = document.getElementById('auth-shield-message');
+    if (label) label.textContent = message || 'Unable to verify your account. Please retry.';
+    const actions = document.getElementById('auth-shield-actions');
+    if (actions) actions.style.display = 'block';
+  },
+  ready() { const shield=document.getElementById('auth-shield'); if (shield) shield.remove(); }
+};
+window.setTimeout(() => window.IronlogStartup.fail('Account check is taking too long. Check your connection and retry.'), 12000);
+</script><script src="./firebase-config.js" onerror="window.IronlogStartup.fail('Firebase configuration could not load. Retry after refreshing the website.')"></script><script type="module" src="./firebase-sync.js" onerror="window.IronlogStartup.fail('Firebase sign-in module could not load. Check your connection and retry.')"></script></body></html>

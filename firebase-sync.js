@@ -182,11 +182,12 @@ async function configure(config) {
         updateStatus();
       }
       if (document.getElementById('firebase-account')) bridge.setStatus(state.status, state.detail);
-    }, err => { state.error = err.message; show('Auth error', err.message); });
+    }, err => { state.error = err.message; show('Auth error', err.message); window.IronlogStartup?.fail(`Google account check failed: ${err.message}`); });
     show('Sign in required', 'Use the Google button in Settings');
   } catch (err) {
     state.error = err.message;
     show('Firebase error', `${err.message} — check config and internet`);
+    window.IronlogStartup?.fail(`Firebase could not start: ${err.message}`);
     console.error('[Ironlog Firebase]', err);
   }
 }
@@ -230,8 +231,9 @@ try {
     configure(bundled);
   } else {
     show('Firebase setup error', 'Public web configuration is missing from deployment');
+    window.IronlogStartup?.fail('Firebase setup is missing from this website deployment.');
   }
-} catch (err) { show('Config error', err.message); }
+} catch (err) { show('Config error', err.message); window.IronlogStartup?.fail(`Firebase configuration error: ${err.message}`); }
 // Installable app shell; Firestore/Google login still require working internet
 // until the SDK is cached and a Firebase session has already been established.
 if ('serviceWorker' in navigator && location.protocol !== 'file:') {
