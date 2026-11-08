@@ -1,0 +1,7 @@
+IRONLOG V2 — Firebase preconfigured
+
+No commands required. Extract the ZIP and drag the extracted folder to your existing Netlify project > Deploys (manual deploy).
+Full steps: DEPLOY-NO-COMMANDS.txt
+
+Firebase project is bundled. Sign in once per device with your Google account.
+Local workout autosave continues even when offline.

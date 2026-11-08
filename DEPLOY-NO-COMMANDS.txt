@@ -1,0 +1,17 @@
+IRONLOG V2 - ONE FIREBASE CONFIG FOR ALL DEVICES
+
+1. Open https://app.netlify.com/ and select your existing IRONLOG project (ironlog-gym-7920).
+2. Open Deploys and drag the ENTIRE unzipped ironlog-v2-cloud folder to the manual deploy/drop zone.
+   Do not upload just index.html: the folder contains firebase-config.js and firebase-sync.js.
+3. Wait for Published status, then open https://ironlog-gym-7920.netlify.app/ and refresh.
+4. In Firebase Console > Authentication > Settings > Authorized domains, verify ironlog-gym-7920.netlify.app exists.
+5. In IRONLOG > Settings, sign in with Google. You should not be asked for Firebase JSON.
+6. Repeat on phone; use same Google account to access same cloud data.
+7. To verify, enter a test set, wait for Cloud synced and inspect Firestore users/{uid}/state/draft.
+
+Notes: Google login is per device, but the Firebase project config is supplied by the site.
+The app saves locally right away, then syncs online; offline drafts persist on that device.
+Simultaneous editing of the same workout from multiple devices is not conflict safe.
+Firebase web API key in firebase-config.js must match your Firebase Console exactly. If
+auth/api-key-not-valid occurs, inspect Project settings > Your apps > Config and
+correct the apiKey value in firebase-config.js before deploying again.
