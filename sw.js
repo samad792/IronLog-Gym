@@ -1,4 +1,4 @@
-const CACHE = 'ironlog-shell-v8-mobile-scale';
+const CACHE = 'ironlog-shell-v9-responsive-date';
 const SHELL = ['./', './index.html', './firebase-sync.js', './firebase-config.js', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
