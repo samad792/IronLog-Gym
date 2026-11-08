@@ -5,3 +5,5 @@ Full steps: DEPLOY-NO-COMMANDS.txt
 
 Firebase project is bundled. Sign in once per device with your Google account.
 Local workout autosave continues even when offline.
+
+MOBILE DESIGN UPDATE: The workout screen now has separate labeled fields for each set, larger input targets, comfortable padding, and a five-item bottom navigation including Settings. Deploy this complete folder to the SAME existing Netlify project to update the URL. Reopen or refresh the installed app to receive the new version.
