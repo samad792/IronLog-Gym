@@ -1,5 +1,5 @@
-const CACHE = 'ironlog-shell-v12-selected-logo';
-const SHELL = ['./', './index.html', './firebase-sync.js', './firebase-config.js', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './ironlog-mark.png', './ironlog-wordmark.png'];
+const CACHE = 'ironlog-shell-v13-icons-only';
+const SHELL = ['./', './index.html', './firebase-sync.js', './firebase-config.js', './manifest.webmanifest', './icon-192.png', './icon-512.png', './favicon.png', './apple-touch-icon.png', './ironlog-mark.png', './ironlog-wordmark.png'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
 });
