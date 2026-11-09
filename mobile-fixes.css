@@ -31,4 +31,7 @@ button:focus-visible,summary:focus-visible {outline:2px solid var(--green);outli
  main{padding-top:max(20px,env(safe-area-inset-top));padding-bottom:calc(120px + env(safe-area-inset-bottom))}
 }
 
-@media(max-width:750px){#workout>.row:first-child{margin-bottom:18px}}
+/* Page-heading actions need separation from the following panel, even when
+   the heading wraps and the action moves onto its own line. */
+.view > .row:first-child { margin-bottom:20px; }
+

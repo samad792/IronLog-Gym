@@ -1,4 +1,4 @@
-const CACHE = 'ironlog-shell-v14-mobile-review';
+const CACHE = 'ironlog-shell-v15-heading-spacing';
 const SHELL = ['./', './index.html', './firebase-sync.js', './firebase-config.js', './manifest.webmanifest', './icon-192.png', './icon-512.png', './favicon.png', './apple-touch-icon.png', './mobile-fixes.css'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
