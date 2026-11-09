@@ -1,0 +1,34 @@
+/* Targeted mobile spacing fixes; existing colours and desktop layout retained. */
+button:focus-visible,summary:focus-visible {outline:2px solid var(--green);outline-offset:3px}
+.modal-toolbar {display:flex;justify-content:flex-end;margin-bottom:12px}
+.modal {overscroll-behavior:contain;overflow-wrap:anywhere}
+.modalbg {overscroll-behavior:contain}
+@media(max-width:750px){
+ .topright .header-settings,.topright .header-export{display:none}
+ .topright{gap:10px}
+ .topright .tag{max-width:100%;white-space:normal;overflow-wrap:anywhere;text-align:left}
+ .btn,.btn.small,.sectionhead .btn,.topright .btn,.workout-ex>.row:first-child .btn{min-height:44px}
+ .actions{gap:12px}
+ .actions>.btn{max-width:100%;overflow-wrap:anywhere}
+ .sectionhead,.metric,.historyitem.row,.historyitem summary,.prdetail{flex-wrap:wrap;gap:12px}
+ .panel,.workout-ex,.exercise-card,.historyitem{overflow-wrap:anywhere}
+ .workout-ex>.row:first-child .btn{margin-left:0}
+ .set-delete{width:44px;height:44px;min-height:44px!important;touch-action:manipulation}
+ .set-number{min-height:44px}
+ .set-warm{min-height:44px;gap:12px;cursor:pointer;width:fit-content;max-width:100%}
+ .set-warm::before{content:none}
+ .set-warm>span{display:block;font-size:12px;color:var(--muted)}
+ .set-warm input{flex:0 0 22px}
+ .set-entry{row-gap:12px;padding-top:16px;padding-bottom:16px}
+ .mobile-nav{column-gap:4px}
+ .mobile-nav button{min-height:52px;padding:6px 1px}
+ .historyitem summary{min-height:44px}
+ .metric>.row{flex-wrap:wrap;gap:12px}
+ .prdetail>div{flex:1 1 130px}
+ .historyitem.row>div{flex:1 1 150px}
+ .modal{max-height:calc(100dvh - 32px - env(safe-area-inset-top) - env(safe-area-inset-bottom));padding:18px}
+ .modalbg{padding-top:max(16px,env(safe-area-inset-top));padding-bottom:max(16px,env(safe-area-inset-bottom))}
+ main{padding-top:max(20px,env(safe-area-inset-top));padding-bottom:calc(120px + env(safe-area-inset-bottom))}
+}
+
+@media(max-width:750px){#workout>.row:first-child{margin-bottom:18px}}

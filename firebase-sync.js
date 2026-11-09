@@ -38,7 +38,7 @@ function stopListeners() {
   state.error = '';
 }
 function isLocalDefault(data) {
-  return !data.workouts?.length && !data.weights?.length && !data.templates?.length && data.categories?.length === 3;
+  return bridge.isDefaultData(data);
 }
 
 function changed(kind) {
@@ -92,7 +92,7 @@ function initializeDocument(kind, snapshot) {
   const record = snapshot.exists() ? snapshot.data() : null;
   const local = kind === 'data' ? bridge.getData() : bridge.getDraft();
   const localHasData = kind === 'data' ? !isLocalDefault(local) : !!local;
-  if (record && record.value != null) {
+  if (record && Object.prototype.hasOwnProperty.call(record, 'value')) {
     const remote = record.value;
     const cloudHasData = kind === 'data' ? !isLocalDefault(remote) : !!remote;
     let keepLocal = false;
@@ -103,7 +103,9 @@ function initializeDocument(kind, snapshot) {
         // Preserve most recent unfinished session, comparing autosave timestamps.
         keepLocal = Number(local.updatedAt || 0) > Number(remote.updatedAt || 0);
       }
-    } else if (localHasData && !cloudHasData) keepLocal = true;
+    } else if (localHasData && !cloudHasData) {
+      keepLocal = kind === 'draft' ? Number(local.updatedAt || 0) > Number(record.updatedAt || 0) : true;
+    }
     if (!keepLocal) useRemote(kind, remote);
     state.initial[kind] = true;
     if (keepLocal) { state.pending[kind] = true; send(kind); }
