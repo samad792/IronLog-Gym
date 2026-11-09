@@ -1,0 +1,14 @@
+{
+  "name": "IRONLOG Gym Progress",
+  "short_name": "IRONLOG",
+  "description": "Private strength training, personal records and bodyweight analytics",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#090d13",
+  "theme_color": "#090d13",
+  "icons": [
+    {"src":"./icon-192.png","sizes":"192x192","type":"image/png","purpose":"any maskable"},
+    {"src":"./icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+  ]
+}
