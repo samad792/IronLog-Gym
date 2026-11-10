@@ -1,0 +1,40 @@
+/* Workout organisation, shared across phones, tablets and desktop. */
+.routine-tools{margin:20px 0;gap:12px}
+.exercise-fold{padding:0;overflow:hidden}
+.exercise-fold>summary{display:flex;align-items:center;justify-content:space-between;gap:16px;list-style:none;cursor:pointer;padding:18px;min-height:80px;touch-action:manipulation}
+.exercise-fold>summary::-webkit-details-marker{display:none}
+.exercise-summary-text{display:grid;justify-items:start;gap:8px;min-width:0;overflow-wrap:anywhere}
+.exercise-summary-text strong{font-size:18px;line-height:1.35}
+.fold-indicator{flex:0 0 30px;text-align:center;font-size:28px;color:var(--green);transition:transform .15s}
+.exercise-fold[open]>summary .fold-indicator{transform:rotate(180deg)}
+.exercise-fold[open]>summary{border-bottom:1px solid var(--line)}
+.exercise-body{padding:18px}
+.exercise-body>.row{gap:12px;flex-wrap:wrap}
+.exercise-remove{border-top:1px solid var(--line);margin-top:18px;padding-top:16px}
+.routine-caption{font-size:12px;line-height:1.5;margin:-6px 0 18px;overflow-wrap:anywhere}
+.routine-card-action{margin-top:12px}
+.library-actions{margin-top:16px;gap:12px}
+.routine-check{display:flex;align-items:center;gap:12px;min-height:48px;padding:8px 4px;cursor:pointer;overflow-wrap:anywhere}
+.routine-check input{flex:0 0 22px;width:22px;height:22px;margin:0}
+.routine-check span{min-width:0}
+.routine-picker{max-height:250px;overflow:auto;border:1px solid var(--line);border-radius:12px;padding:8px 12px;overscroll-behavior:contain}
+.routine-check[hidden],.library-ex[hidden]{display:none}
+.routine-selected{padding:14px;border:1px solid var(--line);border-radius:12px;display:grid;gap:14px;overflow-wrap:anywhere}
+.routine-selected-controls{display:flex;align-items:end;gap:16px;justify-content:space-between;flex-wrap:wrap}
+.routine-selected-controls .field{flex:0 1 110px}
+.routine-selected-controls .actions{gap:12px}
+.routine-selected-controls button{min-width:44px;min-height:44px}
+.routine-template{display:grid;gap:16px}
+.routine-template .actions{gap:12px}
+.routine-list-row{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;border:1px solid var(--line);border-radius:12px;padding:14px}
+.routine-list-row>span{flex:1 1 180px;overflow-wrap:anywhere}
+@media(max-width:750px){
+ .exercise-fold.workout-ex{padding:0}
+ .exercise-fold>summary{padding:16px;gap:12px}
+ .exercise-body{padding:16px 12px}
+ .exercise-body>.row>.btn{flex:1 1 125px}
+ .routine-tools>.btn{flex:1 1 130px}
+ .routine-template .actions>.btn{flex:1 1 100px}
+ .routine-selected-controls{gap:12px}
+ .routine-picker{max-height:220px}
+}
