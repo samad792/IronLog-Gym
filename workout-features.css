@@ -38,3 +38,16 @@
  .routine-selected-controls{gap:12px}
  .routine-picker{max-height:220px}
 }
+
+/* Split sections remain the same on mobile, tablet and desktop. */
+.library-split{border:1px solid var(--line);border-radius:14px;min-width:0;overflow:hidden}
+.library-split>summary{display:flex;align-items:center;flex-wrap:wrap;gap:12px;min-height:56px;padding:16px;cursor:pointer;list-style:none;background:var(--surface2)}
+.library-split>summary::-webkit-details-marker{display:none}
+.library-split>summary::before{content:'›';font-size:24px;line-height:1;color:var(--green)}
+.library-split[open]>summary::before{transform:rotate(90deg)}
+.library-split-name{flex:1 1 110px;font-weight:800;overflow-wrap:anywhere;color:var(--green)}
+.library-split-cards{padding:16px}
+.library-split-empty{grid-column:1/-1}
+.library-split[hidden],.library-search-empty[hidden]{display:none}
+.library-search-empty{margin-top:16px}
+@media(max-width:750px){.library-split>summary{padding:14px}.library-split-cards{padding:12px}}

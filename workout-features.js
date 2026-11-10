@@ -103,7 +103,53 @@ renderExercises = function() {
   document.getElementById('exercises').innerHTML=`<div class="row" style="flex-wrap:wrap"><div><h1>Exercise library</h1><p class="subline">Your exercises, your splits. Edit or remove any exercise, including the defaults.</p></div><div class="actions">${button('＋ New exercise','newExerciseModal()','primary')}${button('Build a template','editRoutine()')}</div></div>
     <div class="panel"><div class="row" style="flex-wrap:wrap"><input class="input search" aria-label="Filter exercises" placeholder="Filter exercises..." oninput="document.querySelectorAll('.library-ex').forEach(e=>e.hidden=!e.textContent.toLowerCase().includes(this.value.toLowerCase()))"><span class="muted">${exercises.length} exercises</span></div><div class="divider"></div><div class="grid cols3">${exercises.map(x=>`<div class="exercise-card library-ex"><span class="pill">${esc(x.category)}</span><div class="name" style="margin:12px 0 6px">${esc(x.name)}</div><div class="muted tiny">${esc(x.muscle || 'General')}</div><div class="actions library-actions">${button('View',`showExerciseDetails(${jsArg(x.id)})`,'small')}${button('Edit',`editLibraryExercise(${jsArg(x.id)})`,'small')}${button('Remove',`removeLibraryExercise(${jsArg(x.id)})`,'small danger')}</div></div>`).join('') || '<div class="empty">Your library is empty. Add your first exercise above.</div>'}</div></div>
     <div class="sectionhead"><h2>Custom splits</h2>${button('＋ Add split','newCategoryModal()')}</div><div class="actions">${data.categories.map(c=>`<span class="pill subtle">${esc(c)}</span>`).join('')}</div><div class="sectionhead"><h2>Removed exercises</h2>${button('Manage removed ('+removed+')','showRemovedExercises()','small')}</div><p>Removing an exercise hides it from the library and future templates. Your logged history and current session remain intact.</p>`;
+  groupExerciseLibrary();
 };
+
+// Group existing library cards without changing exercise identities or saved data.
+function groupExerciseLibrary() {
+  const view=document.getElementById('exercises');
+  const grid=view.querySelector('.panel > .grid.cols3');
+  if(!grid)return;
+  const exercises=activeExercises();
+  const cards=[...grid.querySelectorAll('.library-ex')];
+  const categories=[...new Set([...data.categories,...exercises.map(e=>e.category || 'UNASSIGNED')])];
+  const groups=document.createElement('div');groups.className='stack library-groups';
+  if(!exercises.length)groups.innerHTML='<div class="empty">Your library is empty. Add your first exercise above.</div>';
+  for(const category of categories){
+    const members=exercises.map((e,i)=>({e,card:cards[i]})).filter(({e})=>(e.category || 'UNASSIGNED')===category).sort((a,b)=>a.e.name.localeCompare(b.e.name));
+    const section=document.createElement('details');section.className='library-split';section.open=true;
+    section.innerHTML='<summary><span class="library-split-name">'+esc(category)+'</span><span class="pill subtle library-split-count">'+members.length+' exercise'+(members.length===1?'':'s')+'</span></summary><div class="grid cols3 library-split-cards"></div>';
+    const container=section.querySelector('.library-split-cards');
+    for(const {card} of members)if(card)container.append(card);
+    if(!members.length)container.innerHTML='<p class="muted tiny library-split-empty">No exercises in this split yet. Add an exercise or change its split using Edit.</p>';
+    groups.append(section);
+  }
+  grid.replaceWith(groups);
+  const search=view.querySelector('.search');
+  search.setAttribute('oninput','filterExerciseLibrary(this.value)');
+}
+function filterExerciseLibrary(query) {
+  const term=query.trim().toLocaleLowerCase();
+  for(const section of document.querySelectorAll('.library-split')){
+    const cards=[...section.querySelectorAll('.library-ex')];
+    for(const card of cards)card.hidden=!card.textContent.toLocaleLowerCase().includes(term);
+    const count=cards.filter(card=>!card.hidden).length;
+    section.hidden=!!term && count===0;
+    section.querySelector('.library-split-count').textContent=count+' exercise'+(count===1?'':'s');
+    if(term){
+      if(!section.hasAttribute('data-before-search'))section.dataset.beforeSearch=String(section.open);
+      if(count)section.open=true;
+    }else if(section.hasAttribute('data-before-search')){
+      section.open=section.dataset.beforeSearch==='true';delete section.dataset.beforeSearch;
+    }
+  }
+  const view=document.getElementById('exercises');
+  let empty=view.querySelector('.library-search-empty');
+  if(!empty){empty=document.createElement('div');empty.className='empty library-search-empty';empty.textContent='No exercises match your search.';view.querySelector('.library-groups').after(empty);}
+  empty.hidden=!term || !!view.querySelector('.library-split:not([hidden])');
+}
+
 newExerciseModal = function() { editLibraryExercise(); };
 function editLibraryExercise(eid=null) {
   const e=eid ? exById(eid) : null;
@@ -137,18 +183,43 @@ function editRoutine(tid=null,category=null,source=null) {
   const from=source==='draft' ? draft : t;
   category=category || from?.category || data.categories[0] || 'PUSH';
   routineEditor={id:t?.id || null,name:t?.name || category+' routine',category,isDefault:t ? !!t.isDefault : true,exercises:availableRoutineExercises(from).map(e=>({exerciseId:e.exerciseId,sets:clone(e.sets?.length?e.sets:[blankRoutineSet()])}))};
-  modal(`<h2>${t?'Edit':'Build'} template</h2><p>Choose exercises in the order you want to train. The default template loads when you start its split.</p><div class="stack" style="margin-top:16px"><label class="field">Template name<input class="input" id="routineName" value="${esc(routineEditor.name)}" oninput="routineEditor.name=this.value"></label><label class="field">Training split<select id="routineCategory" onchange="routineEditor.category=this.value">${data.categories.map(c=>`<option ${c===category?'selected':''}>${esc(c)}</option>`).join('')}</select></label><label class="routine-check"><input type="checkbox" id="routineDefault" ${routineEditor.isDefault?'checked':''} onchange="routineEditor.isDefault=this.checked"><span>Load automatically when starting this split</span></label><h3>Choose exercises</h3><input class="input" aria-label="Find exercises for template" placeholder="Find an exercise..." oninput="document.querySelectorAll('.routine-pick').forEach(e=>e.hidden=!e.textContent.toLowerCase().includes(this.value.toLowerCase()))"><div class="routine-picker">${activeExercises().map(e=>`<label class="routine-check routine-pick"><input type="checkbox" ${routineEditor.exercises.some(x=>x.exerciseId===e.id)?'checked':''} onchange="${esc(`chooseRoutineExercise(${jsArg(e.id)},this.checked)`)}"><span>${esc(e.name)} <span class="muted tiny">${esc(e.category)}</span></span></label>`).join('') || '<p>Add exercises to your library first.</p>'}</div><h3>Order & sets</h3><div id="routineSelection" class="stack"></div>${button('Save template','saveRoutineEditor()','primary wide')}</div>`);
+  modal(`<h2>${t?'Edit':'Build'} template</h2><p>Choose exercises in the order you want to train. The default template loads when you start its split.</p><div class="stack" style="margin-top:16px"><label class="field">Template name<input class="input" id="routineName" value="${esc(routineEditor.name)}" oninput="routineEditor.name=this.value"></label><label class="field">Training split<select id="routineCategory" onchange="changeRoutineCategory(this.value)">${data.categories.map(c=>`<option ${c===category?'selected':''}>${esc(c)}</option>`).join('')}</select></label><label class="routine-check"><input type="checkbox" id="routineDefault" ${routineEditor.isDefault?'checked':''} onchange="routineEditor.isDefault=this.checked"><span>Load automatically when starting this split</span></label><h3>Choose exercises</h3><input class="input" id="routineSearch" aria-label="Find exercises for template" placeholder="Find an exercise..." oninput="filterRoutineChoices()"><div class="routine-picker">${activeExercises().map(e=>`<label class="routine-check routine-pick" data-exercise-id="${esc(e.id)}"><input type="checkbox" ${routineEditor.exercises.some(x=>x.exerciseId===e.id)?'checked':''} onchange="${esc(`chooseRoutineExercise(${jsArg(e.id)},this.checked)`)}"><span>${esc(e.name)} <span class="muted tiny">${esc(e.category)}</span></span></label>`).join('') || '<p>Add exercises to your library first.</p>'}</div><h3>Order & sets</h3><div id="routineSelection" class="stack"></div>${button('Save template','saveRoutineEditor()','primary wide')}</div>`);
   renderRoutineSelection();
+  filterRoutineChoices();
 }
+
+function changeRoutineCategory(category) {
+  if(!routineEditor)return;
+  routineEditor.category=category;
+  const search=document.getElementById('routineSearch');if(search)search.value='';
+  filterRoutineChoices();
+}
+function filterRoutineChoices() {
+  if(!routineEditor)return;
+  const query=(document.getElementById('routineSearch')?.value || '').trim().toLocaleLowerCase();
+  const picker=document.querySelector('.routine-picker');if(!picker)return;
+  let shown=0;
+  for(const label of picker.querySelectorAll('.routine-pick')){
+    const e=exById(label.dataset.exerciseId);
+    label.hidden=!e || e.archived || e.category!==routineEditor.category || !e.name.toLocaleLowerCase().includes(query);
+    if(!label.hidden)shown++;
+  }
+  let empty=document.getElementById('routinePickerEmpty');
+  if(!empty){empty=document.createElement('p');empty.id='routinePickerEmpty';empty.className='muted tiny';empty.setAttribute('aria-live','polite');picker.append(empty);}
+  empty.textContent=query?'No matching exercises in '+routineEditor.category+'.':'No exercises in '+routineEditor.category+' yet. Add them or change their split in the exercise library.';
+  empty.hidden=shown>0;
+}
+
 function chooseRoutineExercise(eid,checked) {
   if(!routineEditor)return;
   if(checked && !routineEditor.exercises.some(e=>e.exerciseId===eid))routineEditor.exercises.push({exerciseId:eid,sets:Array.from({length:3},blankRoutineSet)});
   if(!checked)routineEditor.exercises=routineEditor.exercises.filter(e=>e.exerciseId!==eid);
+  document.querySelectorAll('.routine-pick').forEach(label=>label.querySelector('input').checked=routineEditor.exercises.some(e=>e.exerciseId===label.dataset.exerciseId));
   renderRoutineSelection();
 }
 function renderRoutineSelection() {
   const root=document.getElementById('routineSelection');if(!root||!routineEditor)return;
-  root.innerHTML=routineEditor.exercises.map((e,i)=>`<div class="routine-selected"><strong>${i+1}. ${esc(exById(e.exerciseId)?.name || 'Exercise')}</strong><div class="routine-selected-controls"><label class="field">Sets<input class="input" type="number" min="1" max="20" step="1" value="${e.sets.length}" aria-label="Sets for ${esc(exById(e.exerciseId)?.name)}" onchange="setRoutineSetCount(${i},this.value)"></label><div class="actions"><button type="button" class="btn small" aria-label="Move exercise ${i+1} up" onclick="moveRoutineExercise(${i},-1)" ${i===0?'disabled':''}>↑</button><button type="button" class="btn small" aria-label="Move exercise ${i+1} down" onclick="moveRoutineExercise(${i},1)" ${i===routineEditor.exercises.length-1?'disabled':''}>↓</button></div></div></div>`).join('') || '<p>No exercises selected yet.</p>';
+  root.innerHTML=routineEditor.exercises.map((e,i)=>`<div class="routine-selected"><div class="routine-list-row"><strong>${i+1}. ${esc(exById(e.exerciseId)?.name || 'Exercise')}</strong>${button('Remove',`chooseRoutineExercise(${jsArg(e.exerciseId)},false)`,'small danger')}</div><div class="routine-selected-controls"><label class="field">Sets<input class="input" type="number" min="1" max="20" step="1" value="${e.sets.length}" aria-label="Sets for ${esc(exById(e.exerciseId)?.name)}" onchange="setRoutineSetCount(${i},this.value)"></label><div class="actions"><button type="button" class="btn small" aria-label="Move exercise ${i+1} up" onclick="moveRoutineExercise(${i},-1)" ${i===0?'disabled':''}>↑</button><button type="button" class="btn small" aria-label="Move exercise ${i+1} down" onclick="moveRoutineExercise(${i},1)" ${i===routineEditor.exercises.length-1?'disabled':''}>↓</button></div></div></div>`).join('') || '<p>No exercises selected yet.</p>';
 }
 function setRoutineSetCount(i,value) {
   const count=Number(value);if(!Number.isInteger(count)||count<1||count>20){toast('Choose 1 to 20 sets');renderRoutineSelection();return;}
