@@ -51,3 +51,7 @@
 .library-split[hidden],.library-search-empty[hidden]{display:none}
 .library-search-empty{margin-top:16px}
 @media(max-width:750px){.library-split>summary{padding:14px}.library-split-cards{padding:12px}}
+
+.export-workout-list{max-height:45dvh;overflow:auto;overscroll-behavior:contain}
+.export-workout-list .routine-check{border:1px solid var(--line);border-radius:12px;padding:12px}
+#review-sync[hidden]{display:none}

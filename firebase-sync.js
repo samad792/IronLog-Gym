@@ -9,7 +9,7 @@ const state = {
   pending: { data: false, draft: false },
   timers: {}, syncing: { data: false, draft: false },
   status: 'Local only', detail: 'Connect Firebase in Settings', error: '',
-  generation: 0,
+  generation: 0, conflicts: {data:false,draft:false},
 };
 
 function show(status, detail = '') {
@@ -19,6 +19,7 @@ function show(status, detail = '') {
 }
 function updateStatus() {
   if (!state.user) return show(state.auth ? 'Sign in required' : 'Local only', state.auth ? 'Connect your Google account in Settings' : 'Connect Firebase in Settings');
+  if (state.conflicts.data || state.conflicts.draft) return show('Review sync', 'Choose which saved copy to use; both copies are unchanged');
   if (state.error) return show('Sync error', state.error);
   if (!navigator.onLine) return show('Offline · saved locally', 'Changes will sync after your internet connection returns');
   if (!state.initial.data || !state.initial.draft) return show('Connecting…', 'Loading cloud training history');
@@ -36,109 +37,84 @@ function stopListeners() {
   state.pending = { data: false, draft: false };
   state.syncing = { data: false, draft: false };
   state.error = '';
+  state.conflicts = {data:false,draft:false};
 }
 function isLocalDefault(data) {
   return bridge.isDefaultData(data);
 }
 
-function changed(kind) {
-  if (!state.user) return; // All changes are already persisted instantly in localStorage.
-  state.pending[kind] = true;
-  updateStatus();
-  clearTimeout(state.timers[kind]);
-  // Batch keystrokes to reduce writes and costs. Never delay local autosave.
-  state.timers[kind] = setTimeout(() => send(kind), 350);
+
+const canonical=(value,kind)=>window.IronlogSyncSupport.canonical(value,kind);
+function chooseSyncDirection(kind,local,meta,record){
+  if(!record || !Object.prototype.hasOwnProperty.call(record,'value'))return 'local';
+  if(canonical(local,kind)===canonical(record.value,kind))return 'equal';
+  const localTime=Number(meta.modifiedAt)||0,cloudTime=Number(record.modifiedAt||record.updatedAt)||0;
+  // Compare edit times before empty/default handling: a newer reset or draft
+  // deletion is a real edit, and an older cloud snapshot must not undo it.
+  if(localTime && cloudTime && localTime!==cloudTime)return localTime>cloudTime?'local':'remote';
+  if(!meta.dirty && !localTime && ((kind==='data' && isLocalDefault(local)) || (kind==='draft' && !local)))return 'remote';
+  if(!cloudTime && kind==='data' && isLocalDefault(record.value) && !isLocalDefault(local))return 'local';
+  return 'conflict';
 }
-function send(kind) {
-  const userId = state.user?.uid;
-  const ref = state.refs[kind];
-  if (!userId || !ref || !state.initial[kind]) return;
-  if (state.syncing[kind]) return; // serialize cloud writes; do not falsely acknowledge newer edits
-  if (!navigator.onLine) { updateStatus(); return; }
-  const value = kind === 'data' ? bridge.getData() : bridge.getDraft();
-  clearTimeout(state.timers[kind]);
-  state.timers[kind] = null;
-  state.pending[kind] = false;
-  state.syncing[kind] = true;
-  const generation = state.generation;
-  const payload = { value, updatedAt: Date.now(), origin: CLIENT_ID, schemaVersion: 1 };
-  // Firestore queues writes in its offline cache; only display "Cloud synced"
-  // after the returned promise is acknowledged by the server.
-  state.firestore.setDoc(ref, payload).then(() => {
-    if (generation !== state.generation) return;
-    state.syncing[kind] = false;
-    state.error = '';
-    if (state.pending[kind]) send(kind);
-    updateStatus();
-  }).catch(err => {
-    if (generation !== state.generation) return;
-    state.syncing[kind] = false;
-    state.pending[kind] = true;
-    state.error = `${kind}: ${err.message}`;
-    updateStatus();
-  });
-  updateStatus();
+function changed(kind){
+  if(!state.user)return;
+  state.pending[kind]=true;state.conflicts[kind]=false;updateStatus();send(kind);
 }
-function useRemote(kind, value) {
-  if (kind === 'data') bridge.acceptData(value);
-  else bridge.acceptDraft(value);
-}
-function initializeDocument(kind, snapshot) {
-  // Do not take an incomplete offline-cache miss as proof the cloud is empty.
-  if (!snapshot.exists() && snapshot.metadata.fromCache) {
-    updateStatus();
-    return;
-  }
-  const record = snapshot.exists() ? snapshot.data() : null;
-  const local = kind === 'data' ? bridge.getData() : bridge.getDraft();
-  const localHasData = kind === 'data' ? !isLocalDefault(local) : !!local;
-  if (record && Object.prototype.hasOwnProperty.call(record, 'value')) {
-    const remote = record.value;
-    const cloudHasData = kind === 'data' ? !isLocalDefault(remote) : !!remote;
-    let keepLocal = false;
-    if (localHasData && cloudHasData && JSON.stringify(local) !== JSON.stringify(remote)) {
-      if (kind === 'data') {
-        keepLocal = window.confirm('IRONLOG found BOTH local records and saved Firebase records.\n\nOK = Upload local records to Firebase (replaces cloud copy).\nCancel = Download Firebase records (replaces local copy).\n\nPlease export a JSON backup first if you need to preserve both.');
-      } else {
-        // Preserve most recent unfinished session, comparing autosave timestamps.
-        keepLocal = Number(local.updatedAt || 0) > Number(remote.updatedAt || 0);
+async function send(kind){
+  const ref=state.refs[kind];if(!state.user || !ref || !state.initial[kind] || state.syncing[kind])return;
+  if(!navigator.onLine){updateStatus();return;}
+  state.syncing[kind]=true;state.pending[kind]=false;
+  const generation=state.generation;
+  let forced=null;
+  try{
+    while(generation===state.generation){
+      const value=kind==='data'?bridge.getData():bridge.getDraft(),signature=canonical(value,kind),meta=bridge.getSyncMeta(kind);
+      const stamp=Number(meta.modifiedAt)||0;
+      const payload={value,modifiedAt:stamp||Date.now(),updatedAt:stamp||Date.now(),origin:CLIENT_ID,revision:CLIENT_ID+'-'+Date.now()+'-'+Math.random(),schemaVersion:2};
+      // A transaction rechecks the current server copy before committing a write.
+      const result=await state.firestore.runTransaction(state.db,async transaction=>{
+        const snapshot=await transaction.get(ref);const record=snapshot.exists()?snapshot.data():null;
+        let direction=chooseSyncDirection(kind,value,meta,record);
+        if(forced && forced.local===signature && forced.remote===canonical(record,kind))direction=forced.direction;
+        if(direction==='local'){transaction.set(ref,payload);return {direction,record:payload};}
+        return {direction,record};
+      });
+      if(generation!==state.generation)return;
+      const current=kind==='data'?bridge.getData():bridge.getDraft();
+      if(canonical(current,kind)!==signature){forced=null;state.pending[kind]=false;continue;}
+      if(result.direction==='conflict'){
+        state.conflicts[kind]=true;updateStatus();
+        const choice=await bridge.resolveSyncConflict(kind,value,meta,result.record);
+        if(generation!==state.generation)return;
+        if(choice==='later'){state.pending[kind]=true;return;}
+        state.conflicts[kind]=false;
+        forced={direction:choice,local:signature,remote:canonical(result.record,kind)};
+        continue;
       }
-    } else if (localHasData && !cloudHasData) {
-      keepLocal = kind === 'draft' ? Number(local.updatedAt || 0) > Number(record.updatedAt || 0) : true;
+      if(result.direction==='remote')bridge.acceptSynced(kind,result.record);
+      else bridge.acknowledge(kind,result.record,signature);
+      state.conflicts[kind]=false;state.error='';
+      break;
     }
-    if (!keepLocal) useRemote(kind, remote);
-    state.initial[kind] = true;
-    if (keepLocal) { state.pending[kind] = true; send(kind); }
-  } else {
-    state.initial[kind] = true;
-    // Seed only this exact UID's own scoped local cache (never another identity's data).
-    state.pending[kind] = true;
-    send(kind);
-  }
-  updateStatus();
+  }catch(err){if(generation!==state.generation)return;state.pending[kind]=true;state.error=kind+': '+err.message;}
+  finally{if(generation===state.generation){state.syncing[kind]=false;updateStatus();if(state.pending[kind]&&!state.conflicts[kind]&&!state.error&&navigator.onLine)send(kind);}}
 }
-function watch(kind) {
-  const generation = state.generation;
-  const ref = state.refs[kind];
-  const unsubscribe = state.firestore.onSnapshot(ref, { includeMetadataChanges: true }, snapshot => {
-    if (generation !== state.generation) return;
-    if (!state.initial[kind]) return initializeDocument(kind, snapshot);
-    if (snapshot.metadata.hasPendingWrites || !snapshot.exists()) { updateStatus(); return; }
-    const remote = snapshot.data();
-    if (remote.origin === CLIENT_ID) { updateStatus(); return; }
-    // Avoid overwriting active typed values with an incoming snapshot.
-    if (state.pending[kind] || state.syncing[kind]) { updateStatus(); return; }
-    const local = kind === 'data' ? bridge.getData() : bridge.getDraft();
-    if (JSON.stringify(local) !== JSON.stringify(remote.value)) {
-      useRemote(kind, remote.value);
-      if (kind === 'draft') bridge.setStatus('Cloud updated', 'Another signed-in device updated your workout');
-    }
-    updateStatus();
-  }, err => {
-    if (generation !== state.generation) return;
-    state.error = err.message;
-    updateStatus();
-  });
+function initializeDocument(kind,snapshot){
+  // Only a server snapshot can settle which copy is current. Cached values may be stale.
+  if(snapshot.metadata.fromCache || snapshot.metadata.hasPendingWrites){updateStatus();return;}
+  state.initial[kind]=true;state.pending[kind]=true;send(kind);
+}
+function watch(kind){
+  const generation=state.generation;
+  const unsubscribe=state.firestore.onSnapshot(state.refs[kind],{includeMetadataChanges:true},snapshot=>{
+    if(generation!==state.generation)return;
+    if(!state.initial[kind])return initializeDocument(kind,snapshot);
+    if(snapshot.metadata.fromCache||snapshot.metadata.hasPendingWrites)return;
+    const record=snapshot.exists()?snapshot.data():null;
+    if(state.syncing[kind]){if(record?.origin!==CLIENT_ID)state.pending[kind]=true;return;}
+    if(record?.origin===CLIENT_ID)return;
+    state.pending[kind]=true;send(kind);
+  },err=>{if(generation!==state.generation)return;state.error=err.message;updateStatus();});
   state.listeners.push(unsubscribe);
 }
 function startSync(user) {
@@ -215,6 +191,7 @@ async function signOut() {
 }
 window.IronlogCloud = {
   changed, configure, signIn, signOut,
+  reviewConflicts: () => {for(const kind of ['data','draft'])if(state.conflicts[kind]){state.conflicts[kind]=false;send(kind);}},
   label: () => state.status,
   accountLabel: () => state.user ? `Signed in: ${state.user.email}` : state.auth ? 'Firebase configured · Google sign-in required' : 'Firebase not configured',
   hasUser: () => !!state.user,
