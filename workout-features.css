@@ -55,3 +55,30 @@
 .export-workout-list{max-height:45dvh;overflow:auto;overscroll-behavior:contain}
 .export-workout-list .routine-check{border:1px solid var(--line);border-radius:12px;padding:12px}
 #review-sync[hidden]{display:none}
+/* Saved split comparisons use paired cards rather than a wide mobile table. */
+.comparison-section{margin:24px 0 32px;padding-bottom:24px;border-bottom:1px solid var(--line)}
+.comparison-filters{margin:20px 0;gap:16px}
+.comparison-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:16px 0}
+.comparison-pair>div{min-width:0;overflow-wrap:anywhere}
+.comparison-pair strong{display:block;font-size:20px;margin:6px 0}
+.comparison-cell{padding:12px;background:var(--surface2);border-radius:12px}
+.comparison-cell>b{font-size:12px;color:var(--muted)}
+.comparison-cell p{font-size:12px}
+.comparison-set-list{margin-top:10px;line-height:1.6}
+.comparison-changes{display:flex;flex-wrap:wrap;gap:12px 24px;margin:14px 0}
+.comparison-changes p{font-size:13px}
+.comparison-exercises,.comparison-trend{margin-top:20px}
+.comparison-exercise h3{overflow-wrap:anywhere}
+.comparison-bars{display:grid;gap:10px;margin-top:14px}
+.comparison-track{height:12px;border-radius:6px;background:var(--surface2);overflow:hidden;margin-top:5px}
+.comparison-bar{height:100%;border-radius:6px}
+.comparison-bar.previous{background:var(--blue)}
+.comparison-bar.current{background:var(--green)}
+@media(max-width:750px){.comparison-filters,.comparison-totals{grid-template-columns:1fr}.comparison-pair{gap:10px}.comparison-cell{padding:10px}.comparison-pair strong{font-size:17px}.comparison-totals .panel{padding:16px}}
+
+.set-mode{grid-column:2/-1;justify-self:end;min-height:44px}
+.set-mode[aria-pressed=true]{color:var(--green);background:var(--green-dark);border-color:var(--green)}
+@media(max-width:750px){.set-warm{grid-column:1/3}.set-mode{grid-column:3;grid-row:3;width:100%;padding:6px!important;font-size:11px!important;white-space:normal;min-height:44px}}
+/* Keep desktop removal aligned with the first row when the mode toggle wraps. */
+.set-entry .set-delete{grid-column:6;grid-row:1}
+@media(max-width:750px){.set-entry .set-delete{grid-column:3;grid-row:1}}

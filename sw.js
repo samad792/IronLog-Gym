@@ -1,5 +1,5 @@
-const CACHE = 'ironlog-shell-v19-export-sync';
-const SHELL = ['./', './index.html', './firebase-sync.js', './firebase-config.js', './manifest.webmanifest', './icon-192.png', './icon-512.png', './favicon.png', './apple-touch-icon.png', './mobile-fixes.css', './workout-features.js', './workout-features.css', './export-sync.js'];
+const CACHE = 'ironlog-shell-v21-each-side';
+const SHELL = ['./', './index.html', './firebase-sync.js', './firebase-config.js', './manifest.webmanifest', './icon-192.png', './icon-512.png', './favicon.png', './apple-touch-icon.png', './mobile-fixes.css', './workout-features.js', './workout-features.css', './export-sync.js', './workout-comparison.js'];
 self.addEventListener('install', event => {
   event.waitUntil(caches.open(CACHE).then(cache => cache.addAll(SHELL)).then(() => self.skipWaiting()));
 });

@@ -11,12 +11,10 @@ function commitRoutineData(change) {
   return false;
 }
 function routineSessionExercises(template) {
-  return availableRoutineExercises(template).map(e => {
-    const last = lastEx(e.exerciseId);
-    return { exerciseId:e.exerciseId, collapsed:true, sets:(e.sets?.length ? e.sets : [blankRoutineSet()]).map((s,i) => ({...clone(last?.sets[i] || s), warmup:!!s.warmup})) };
-  });
+  return availableRoutineExercises(template).map(e=>({exerciseId:e.exerciseId,collapsed:true,sets:Array.from({length:3},blankRoutineSet)}));
 }
-function blankRoutineSet() { return {weight:'',reps:8,rpe:'',warmup:false}; }
+function blankRoutineSet() { return {weight:'',reps:'',rpe:'',warmup:false,eachSide:false}; }
+addSet = function(i) {const e=draft?.exercises[i];if(!e)return;e.sets.push(blankRoutineSet());e.collapsed=false;saveDraft();renderWorkout();};
 startWorkout = function(category='PUSH') {
   if (draft && !confirm('Replace your saved workout draft with a new session?')) return;
   draft = {id:id(),date:date(),category,notes:'',exercises:routineSessionExercises(defaultRoutine(category))};
@@ -26,8 +24,8 @@ startWorkout = function(category='PUSH') {
 const baseWorkoutExHTML = workoutExHTML;
 function exerciseSetSummary(e) {
   const sets = e.sets || [];
-  const volume = sets.filter(s => !s.warmup && s.weight !== '' && n(s.reps)>0).reduce((sum,s) => sum+n(s.weight)*n(s.reps),0);
-  return sets.length+' set'+(sets.length===1?'':'s')+' · '+fmt(volume)+' kg volume';
+  const volume = sets.filter(s => !s.warmup && s.weight !== '' && n(s.reps)>0).reduce((sum,s) => sum+n(s.weight)*n(s.reps)*setMultiplier(s),0);
+  return sets.length+' row'+(sets.length===1?'':'s')+' · '+(sets.some(s=>s.eachSide)?'Each side included · ':'')+fmt(volume)+' kg volume';
 }
 workoutExHTML = function(e,i) {
   const x = exById(e.exerciseId);
@@ -60,8 +58,7 @@ pickExercise = function(eid) {
   if (!draft || !x || x.archived) return;
   if (draft.exercises.some(e => e.exerciseId===eid)) return toast('Exercise already added');
   draft.exercises.forEach(e => e.collapsed = true);
-  const last = lastEx(eid);
-  draft.exercises.push({exerciseId:eid,collapsed:false,sets:last?.sets.length ? clone(last.sets) : [blankRoutineSet()]});
+  draft.exercises.push({exerciseId:eid,collapsed:false,sets:Array.from({length:3},blankRoutineSet)});
   saveDraft(); closeModal(); renderWorkout();
 };
 const baseFilterPick = filterPick;
@@ -82,7 +79,7 @@ renderWorkout = function() {
   if (draft) tools.innerHTML += button('Save as template',"editRoutine(null,draft.category,'draft')",'small')+button('Fold all','foldAllExercises(true)','small')+button('Expand all','foldAllExercises(false)','small');
   if (draft) view.querySelector('.workout-meta-panel').after(tools);
   else view.querySelector('.subline').after(tools);
-  showSaveStatus();
+  showSaveStatus();updateLiveSummary();
 };
 const baseRenderDashboard = renderDashboard;
 renderDashboard = function() {
@@ -219,7 +216,7 @@ function chooseRoutineExercise(eid,checked) {
 }
 function renderRoutineSelection() {
   const root=document.getElementById('routineSelection');if(!root||!routineEditor)return;
-  root.innerHTML=routineEditor.exercises.map((e,i)=>`<div class="routine-selected"><div class="routine-list-row"><strong>${i+1}. ${esc(exById(e.exerciseId)?.name || 'Exercise')}</strong>${button('Remove',`chooseRoutineExercise(${jsArg(e.exerciseId)},false)`,'small danger')}</div><div class="routine-selected-controls"><label class="field">Sets<input class="input" type="number" min="1" max="20" step="1" value="${e.sets.length}" aria-label="Sets for ${esc(exById(e.exerciseId)?.name)}" onchange="setRoutineSetCount(${i},this.value)"></label><div class="actions"><button type="button" class="btn small" aria-label="Move exercise ${i+1} up" onclick="moveRoutineExercise(${i},-1)" ${i===0?'disabled':''}>↑</button><button type="button" class="btn small" aria-label="Move exercise ${i+1} down" onclick="moveRoutineExercise(${i},1)" ${i===routineEditor.exercises.length-1?'disabled':''}>↓</button></div></div></div>`).join('') || '<p>No exercises selected yet.</p>';
+  root.innerHTML=routineEditor.exercises.map((e,i)=>`<div class="routine-selected"><div class="routine-list-row"><strong>${i+1}. ${esc(exById(e.exerciseId)?.name || 'Exercise')}</strong>${button('Remove',`chooseRoutineExercise(${jsArg(e.exerciseId)},false)`,'small danger')}</div><div class="routine-selected-controls"><span class="muted tiny">3 blank sets per exercise</span><div class="actions"><button type="button" class="btn small" aria-label="Move exercise ${i+1} up" onclick="moveRoutineExercise(${i},-1)" ${i===0?'disabled':''}>↑</button><button type="button" class="btn small" aria-label="Move exercise ${i+1} down" onclick="moveRoutineExercise(${i},1)" ${i===routineEditor.exercises.length-1?'disabled':''}>↓</button></div></div></div>`).join('') || '<p>No exercises selected yet.</p>';
 }
 function setRoutineSetCount(i,value) {
   const count=Number(value);if(!Number.isInteger(count)||count<1||count>20){toast('Choose 1 to 20 sets');renderRoutineSelection();return;}
@@ -272,3 +269,10 @@ const baseIsDefaultData=window.IronlogBridge.isDefaultData;
 window.IronlogBridge.isDefaultData=value=>!value?.exercises?.some(e=>e.archived) && baseIsDefaultData(value);
 render();
 
+
+function toggleSetSide(i,j,buttonElement){
+  const set=draft?.exercises[i]?.sets[j];if(!set)return;
+  set.eachSide=!set.eachSide;
+  if(buttonElement){buttonElement.textContent=set.eachSide?'Each side':'Together';buttonElement.setAttribute('aria-pressed',String(set.eachSide));const fields=buttonElement.closest('.set-entry').querySelectorAll('.set-field>span');fields[0].textContent=set.eachSide?'Kg per side':'Weight (kg)';fields[1].textContent=set.eachSide?'Reps per side':'Reps';}
+  saveDraft();updateLiveSummary();const summary=document.querySelector('[data-exercise-index="'+i+'"] .exercise-set-summary');if(summary)summary.textContent=exerciseSetSummary(draft.exercises[i]);
+}
