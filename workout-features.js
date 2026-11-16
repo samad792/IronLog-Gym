@@ -1,4 +1,4 @@
-'use strict';
+'use strict';window.IRONLOG_FEATURE_BUILD='23-compact-desktop';
 // Uses the existing account-scoped data/draft persistence and Firebase bridge.
 const activeExercises = () => data.exercises.filter(e => !e.archived);
 const defaultRoutine = category => data.templates.find(t => t.category === category && t.isDefault);
@@ -11,9 +11,9 @@ function commitRoutineData(change) {
   return false;
 }
 function routineSessionExercises(template) {
-  return availableRoutineExercises(template).map(e=>({exerciseId:e.exerciseId,collapsed:true,sets:Array.from({length:3},blankRoutineSet)}));
+  return freshTemplateExercises(template);
 }
-function blankRoutineSet() { return {weight:'',reps:'',rpe:'',warmup:false,eachSide:false}; }
+function blankRoutineSet() { return emptyWorkoutSet(); }
 addSet = function(i) {const e=draft?.exercises[i];if(!e)return;e.sets.push(blankRoutineSet());e.collapsed=false;saveDraft();renderWorkout();};
 startWorkout = function(category='PUSH') {
   if (draft && !confirm('Replace your saved workout draft with a new session?')) return;

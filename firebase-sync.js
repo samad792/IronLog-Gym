@@ -129,6 +129,8 @@ function startSync(user) {
   watch('draft');
 }
 async function configure(config) {
+  if(window.IRONLOG_APP_BUILD && (window.IRONLOG_FEATURE_BUILD!==window.IRONLOG_APP_BUILD || !window.IronlogSyncSupport || typeof renderWorkoutComparison!=='function')){window.IronlogStartup?.fail('Some app files are out of date or could not load. Close and reopen the app after the site update, or retry.');return;}
+
   if (state.user) throw new Error('Sign out before changing Firebase projects.');
   try {
     show('Connecting…', 'Loading Firebase SDK');

@@ -82,3 +82,38 @@
 /* Keep desktop removal aligned with the first row when the mode toggle wraps. */
 .set-entry .set-delete{grid-column:6;grid-row:1}
 @media(max-width:750px){.set-entry .set-delete{grid-column:3;grid-row:1}}
+
+/* Desktop only: inputs, warm-up, mode and removal each have a reserved column. */
+@media(min-width:751px){
+ .exercise-body .setrow{grid-template-columns:36px minmax(0,1fr) minmax(0,1fr) minmax(0,.8fr) 72px 96px 44px;gap:10px;align-items:center}
+ .exercise-body .set-entry{margin:14px 0}
+ .exercise-body .set-number{grid-column:1;grid-row:1}
+ .exercise-body .set-field:nth-of-type(1){grid-column:2;grid-row:1}
+ .exercise-body .set-field:nth-of-type(2){grid-column:3;grid-row:1}
+ .exercise-body .set-field:nth-of-type(3){grid-column:4;grid-row:1}
+ .exercise-body .set-warm{grid-column:5;grid-row:1;min-height:44px}
+ .exercise-body .set-mode{grid-column:6;grid-row:1;width:100%;min-width:0;min-height:44px;white-space:normal;padding:8px 6px}
+ .exercise-body .set-entry .set-delete{grid-column:7;grid-row:1;width:44px;min-height:44px;padding:0}
+ .exercise-body .set-field input{width:100%;min-width:0}
+}
+@media(min-width:751px) and (max-width:1100px){
+ .exercise-body .setrow{grid-template-columns:26px minmax(0,1fr) minmax(0,1fr) minmax(0,.8fr) 52px 74px 36px;gap:6px}
+ .exercise-body .set-entry .set-delete{width:36px}
+ .exercise-body .set-head{font-size:10px!important}
+ .exercise-body{padding:14px 10px}
+}
+/* Compact desktop logging: keep numeric fields at a readable input width. */
+@media(min-width:751px){
+ .exercise-body .setrow{max-width:600px;grid-template-columns:36px minmax(0,1.2fr) minmax(0,1fr) minmax(0,.8fr) 60px 90px 32px;gap:10px}
+ .exercise-body .set-entry{margin:8px 0}
+ .exercise-body .set-field input{height:36px;min-height:36px;padding:6px 8px;font-size:14px}
+ .exercise-body .set-warm{min-height:36px}
+ .exercise-body .set-mode{min-height:36px;padding:6px;font-size:12px}
+ .exercise-body .set-entry .set-delete{width:32px;min-height:36px;height:36px}
+}
+@media(min-width:751px) and (max-width:1100px){
+ .exercise-body .setrow{grid-template-columns:26px minmax(0,1.2fr) minmax(0,1fr) minmax(0,.8fr) 52px 74px 32px;gap:6px}
+}
+@media(min-width:751px) and (pointer:coarse){
+ .exercise-body .set-field input,.exercise-body .set-warm,.exercise-body .set-mode,.exercise-body .set-entry .set-delete{min-height:44px;height:44px}
+}
